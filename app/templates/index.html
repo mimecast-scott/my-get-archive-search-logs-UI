@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <div>
+      <div class="text-2xl font-bold">Searches by user</div>
+      <div class="text-sm text-slate-400">Last {{ days }} days • Total searches: <span class="text-slate-200 font-medium">{{ total }}</span></div>
+    </div>
+
+    <form method="get" action="/" class="flex gap-2 items-center">
+      <label class="text-sm text-slate-400">Days</label>
+      <input name="days" value="{{ days }}" class="w-24 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm" />
+      <button class="bg-slate-100 text-slate-950 rounded-lg px-4 py-2 text-sm font-medium">Apply</button>
+    </form>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-slate-800">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900">
+        <tr class="text-left text-slate-300">
+          <th class="px-4 py-3">User</th>
+          <th class="px-4 py-3 w-40">Search count</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800">
+        {% for r in rows %}
+          <tr class="hover:bg-slate-900/60">
+            <td class="px-4 py-3">
+              <a class="text-slate-100 hover:underline" href="/user/{{ r.email }}?days={{ days }}">{{ r.email }}</a>
+            </td>
+            <td class="px-4 py-3 font-medium">{{ r.count }}</td>
+          </tr>
+        {% endfor %}
+        {% if rows|length == 0 %}
+          <tr><td class="px-4 py-6 text-slate-400" colspan="2">No data yet. Check credentials / base URL and wait for the first poll.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

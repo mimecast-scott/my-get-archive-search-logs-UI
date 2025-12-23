@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-2">
+    <div class="text-sm text-slate-400"><a class="hover:underline" href="/?days={{ days }}">← Back</a></div>
+    <div class="text-2xl font-bold">{{ email }}</div>
+    <div class="text-sm text-slate-400">Last {{ days }} days • {{ total }} searches</div>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-slate-800">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-900">
+        <tr class="text-left text-slate-300">
+          <th class="px-4 py-3 w-56">Time (UTC)</th>
+          <th class="px-4 py-3">Query</th>
+          <th class="px-4 py-3 w-56">Source / Path</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800">
+        {% for r in rows %}
+          <tr class="align-top hover:bg-slate-900/60">
+            <td class="px-4 py-3 text-slate-300">{{ r.create_time }}</td>
+            <td class="px-4 py-3">
+              <div class="font-medium whitespace-pre-wrap break-words">{{ r.search_text or r.muse_query or "(empty)" }}</div>
+              {% if r.description %}<div class="text-xs text-slate-400 mt-1">{{ r.description }}</div>{% endif %}
+              {% if r.search_reason %}<div class="text-xs text-slate-500 mt-1">Reason: {{ r.search_reason }}</div>{% endif %}
+              {% if r.is_admin %}<div class="text-xs text-amber-300 mt-1">Admin search</div>{% endif %}
+            </td>
+            <td class="px-4 py-3 text-slate-300">
+              <div>{{ r.source or "-" }}</div>
+              <div class="text-xs text-slate-500 mt-1 break-words">{{ r.search_path or "-" }}</div>
+            </td>
+          </tr>
+        {% endfor %}
+        {% if rows|length == 0 %}
+          <tr><td class="px-4 py-6 text-slate-400" colspan="3">No searches found for this user in the selected window.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 flex items-center justify-between">
+    <div class="text-sm text-slate-400">Page {{ page }}</div>
+    <div class="flex gap-2">
+      {% if has_prev %}
+        <a class="px-3 py-2 rounded-lg border border-slate-800 hover:bg-slate-900" href="/user/{{ email }}?days={{ days }}&page={{ page - 1 }}">Prev</a>
+      {% else %}
+        <span class="px-3 py-2 rounded-lg border border-slate-900 text-slate-600">Prev</span>
+      {% endif %}
+
+      {% if has_next %}
+        <a class="px-3 py-2 rounded-lg border border-slate-800 hover:bg-slate-900" href="/user/{{ email }}?days={{ days }}&page={{ page + 1 }}">Next</a>
+      {% else %}
+        <span class="px-3 py-2 rounded-lg border border-slate-900 text-slate-600">Next</span>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

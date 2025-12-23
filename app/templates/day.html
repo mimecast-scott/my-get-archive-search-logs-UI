@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Searches for {{ date }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+      <a href="/calendar" class="text-xl font-semibold">← Calendar</a>
+      <span class="text-sm text-slate-400">{{ date }}</span>
+    </div>
+
+    <div id="content" class="space-y-4"></div>
+
+  </div>
+
+<script>
+async function loadDay() {
+  const res = await fetch(`/api/searches-by-day?date={{ date }}`);
+  const data = await res.json();
+
+  const container = document.getElementById("content");
+
+  if (!data.users.length) {
+    container.innerHTML = `
+      <div class="text-slate-400 text-center py-10">
+        No searches recorded for this day
+      </div>`;
+    return;
+  }
+
+  data.users.forEach(user => {
+    const section = document.createElement("div");
+    section.className = "border border-slate-800 rounded-xl bg-slate-900/60";
+
+    section.innerHTML = `
+      <details>
+        <summary class="cursor-pointer px-4 py-3 flex justify-between items-center">
+          <span class="font-semibold">${user.email}</span>
+          <span class="text-sm text-slate-400">${user.count} searches</span>
+        </summary>
+        <div class="divide-y divide-slate-800">
+          ${user.entries.map(e => `
+            <div class="px-4 py-3 text-sm">
+              <div class="text-slate-300">${e.create_time}</div>
+              <div class="font-medium">${e.search_text || "(empty)"}</div>
+              <div class="text-xs text-slate-400 mt-1">
+                ${e.description || "-"} • ${e.search_reason || "-"}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </details>
+    `;
+
+    container.appendChild(section);
+  });
+}
+
+loadDay();
+</script>
+</body>
+</html>

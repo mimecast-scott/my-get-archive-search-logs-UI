@@ -1,0 +1,47 @@
+services:
+  mimecast-searchlogs:
+    build: .
+    container_name: mimecast-searchlogs
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      # -------------------------------------------------
+      # Mimecast API 2.0 – OAuth (client_credentials)
+      # -------------------------------------------------
+      MIMECAST_OAUTH_TOKEN_URL: "https://api.services.mimecast.com/oauth/token"
+      MIMECAST_API_BASE_URL: "https://api.services.mimecast.com"
+
+      MIMECAST_CLIENT_ID: "jUusISzGNVWnyxGuBYPkFN1oF94XjciPC2W8aV0h2vuNAsEa"
+      MIMECAST_CLIENT_SECRET: "eklGYtX0mAar8dSuDwRxDqv64Y4E62LoqCY8RLZX8qXBhIGeOMAjgg8Q56Cwu31c"
+
+      # -------------------------------------------------
+      # Polling behaviour
+      # -------------------------------------------------
+      POLL_SECONDS: "3600"          # default: hourly
+      LOOKBACK_SECONDS: "7200"      # overlap window (strongly recommended)
+      ARCHIVE_PAGE_SIZE: "100"
+      # -------------------------------------------------
+      # Database (libSQL / SQLite)
+      # -------------------------------------------------
+      DB_PATH: "/data/searchlogs.db"
+
+      # -------------------------------------------------
+      # UI defaults
+      # -------------------------------------------------
+      DEFAULT_DAYS: "30"
+      PAGE_SIZE: "50"
+
+    volumes:
+      - mimecast_searchlogs_data:/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mimecast_searchlogs_data:

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Search Activity Calendar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+      <a href="/" class="text-xl font-semibold">Mimecast Search Logs</a>
+      <a href="/health" class="text-sm text-slate-400 hover:text-slate-200">health</a>
+    </div>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+      <div class="flex items-center gap-4 mb-6">
+        <select id="month" class="bg-slate-800 border border-slate-700 rounded px-3 py-2"></select>
+        <select id="year" class="bg-slate-800 border border-slate-700 rounded px-3 py-2"></select>
+      </div>
+
+      <div id="calendar" class="grid grid-cols-7 gap-2 text-sm"></div>
+    </div>
+
+  </div>
+
+<script>
+const calendarEl = document.getElementById("calendar");
+const monthSelect = document.getElementById("month");
+const yearSelect = document.getElementById("year");
+
+const now = new Date();
+const currentMonth = now.getMonth() + 1;
+const currentYear = now.getFullYear();
+
+for (let m = 1; m <= 12; m++) {
+  const opt = document.createElement("option");
+  opt.value = m;
+  opt.text = new Date(0, m - 1).toLocaleString("default", { month: "long" });
+  if (m === currentMonth) opt.selected = true;
+  monthSelect.appendChild(opt);
+}
+
+for (let y = currentYear - 3; y <= currentYear + 1; y++) {
+  const opt = document.createElement("option");
+  opt.value = y;
+  opt.text = y;
+  if (y === currentYear) opt.selected = true;
+  yearSelect.appendChild(opt);
+}
+
+monthSelect.addEventListener("change", loadCalendar);
+yearSelect.addEventListener("change", loadCalendar);
+
+async function loadCalendar() {
+  const month = monthSelect.value;
+  const year = yearSelect.value;
+
+  const res = await fetch(`/api/searches-per-day?month=${month}&year=${year}`);
+  const data = await res.json();
+
+  renderCalendar(year, month, data.days);
+}
+
+function renderCalendar(year, month, days) {
+  calendarEl.innerHTML = "";
+
+  const counts = {};
+  days.forEach(d => counts[d.date] = d.count);
+
+  const firstDay = new Date(year, month - 1, 1);
+  const startDay = firstDay.getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(h => {
+    const el = document.createElement("div");
+    el.className = "text-center font-semibold text-slate-400";
+    el.textContent = h;
+    calendarEl.appendChild(el);
+  });
+
+  for (let i = 0; i < startDay; i++) {
+    calendarEl.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const count = counts[date] || 0;
+
+    const cell = document.createElement("div");
+    cell.className = `
+      border border-slate-800 rounded-lg p-2 h-20
+      ${count > 0 ? "bg-slate-800" : "bg-slate-900/40"}
+    `;
+
+    cell.innerHTML = `
+      <a href="/day/${date}" class="block h-full">
+        <div class="text-xs text-slate-400">${d}</div>
+        <div class="mt-2 text-lg font-semibold">${count || ""}</div>
+      </a>
+    `;
+
+    calendarEl.appendChild(cell);
+  }
+}
+
+loadCalendar();
+</script>
+</body>
+</html>
